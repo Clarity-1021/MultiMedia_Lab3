@@ -6,6 +6,7 @@
 #include <string.h>
 #include "cjpeg.h"
 #include "cio.h"
+#include "stdio.h"
 
 
 /*
@@ -18,6 +19,7 @@ flush_cin_buffer(void *cio)
 {
     mem_mgr *in = ((compress_io *) cio)->in;
     size_t len = in->end - in->set;
+    // printf("len=%d\n", len);
     memset(in->set, 0, len);
     if (fread(in->set, sizeof(UINT8), len, in->fp) != len)
         return false;
@@ -87,7 +89,6 @@ free_mem(compress_io *cio)
     free(cio->out);
 }
 
-
 /*
  * write operations.
  */
@@ -97,6 +98,7 @@ write_byte(compress_io *cio, UINT8 val)
 {
     mem_mgr *out = cio->out;
     *(out->pos)++ = val & 0xFF;
+
     if (out->pos == out->end) {
         if (!(out->flush_buffer)(cio))
             err_exit(BUFFER_WRITE_ERR);

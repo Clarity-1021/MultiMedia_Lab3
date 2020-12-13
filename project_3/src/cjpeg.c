@@ -40,9 +40,15 @@ rgb_to_ycbcr(UINT8 *rgb_unit, ycbcr_unit *ycc_unit, int x, int w)
     UINT8 r, g, b;
     int src_pos = x * 3;
     int dst_pos = 0;
-    int i, j;
-    for (j = 0; j < DCTSIZE; j++) {
+	int i, j;
+    //reverse
+#ifdef REVERSED
+    int jxw_pos = 0;
+    // 上下对调
+    for (j = DCTSIZE - 1; j >= 0; j--) {
+        jxw_pos = DCTSIZE * j;
         for (i = 0; i < DCTSIZE; i++) {
+            dst_pos = jxw_pos + i;
             b = rgb_unit[src_pos];
             g = rgb_unit[src_pos+1];
             r = rgb_unit[src_pos+2];
@@ -53,10 +59,28 @@ rgb_to_ycbcr(UINT8 *rgb_unit, ycbcr_unit *ycc_unit, int x, int w)
             ycc_unit->cr[dst_pos] = (INT8) ((UINT8)
                 ((tbl->r2cr[r] + tbl->g2cr[g] + tbl->b2cr[b]) >> 16));
             src_pos += 3;
-            dst_pos++;
         }
         src_pos += (w - DCTSIZE) * 3;
     }
+#else
+    for (j = 0; j < DCTSIZE; j++) {
+        for (i = 0; i < DCTSIZE; i++) {
+            dst_pos = jxw_pos + i;
+            b = rgb_unit[src_pos];
+            g = rgb_unit[src_pos+1];
+            r = rgb_unit[src_pos+2];
+            ycc_unit->y[dst_pos] = (INT8) ((UINT8)
+                ((tbl->r2y[r] + tbl->g2y[g] + tbl->b2y[b]) >> 16) - 128);
+            ycc_unit->cb[dst_pos] = (INT8) ((UINT8)
+                ((tbl->r2cb[r] + tbl->g2cb[g] + tbl->b2cb[b]) >> 16));
+            ycc_unit->cr[dst_pos] = (INT8) ((UINT8)
+                ((tbl->r2cr[r] + tbl->g2cr[g] + tbl->b2cr[b]) >> 16));
+            src_pos += 3;
+			dst_pos++;
+        }
+        src_pos += (w - DCTSIZE) * 3;
+    }
+#endif
 }
 
 
